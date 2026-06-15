@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>使い方 | POKER CHIP</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0d2e1a;
+    color: #fff;
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    padding: 20px 16px 40px;
+  }
+
+  .page-header {
+    text-align: center;
+    padding: 24px 0 32px;
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(212,175,55,0.7);
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    margin-bottom: 20px;
+  }
+
+  .back-btn:hover { color: #d4af37; }
+
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.6rem;
+    background: linear-gradient(135deg, #a07c10, #f0d060, #d4af37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    color: rgba(212,175,55,0.6);
+    font-size: 0.85rem;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.15em;
+  }
+
+  .catch {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.9rem;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  .steps {
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .step-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    border: 1px solid rgba(212,175,55,0.25);
+    border-left: 3px solid #d4af37;
+    border-radius: 12px;
+    padding: 18px 20px;
+    position: relative;
+  }
+
+  .step-num {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    color: #d4af37;
+    letter-spacing: 0.2em;
+    margin-bottom: 4px;
+  }
+
+  .step-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .step-body {
+    color: rgba(255,255,255,0.75);
+    font-size: 0.88rem;
+    line-height: 1.8;
+  }
+
+  .step-body li {
+    list-style: none;
+    padding-left: 16px;
+    position: relative;
+    margin-bottom: 2px;
+  }
+
+  .step-body li::before {
+    content: '♦';
+    position: absolute;
+    left: 0;
+    color: rgba(212,175,55,0.5);
+    font-size: 0.6rem;
+    top: 4px;
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(212,175,55,0.15);
+    border: 1px solid rgba(212,175,55,0.4);
+    color: #d4af37;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 8px;
+  }
+
+  .btn-area {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .btn-mock {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .btn-green { background: #1e8449; color: #fff; }
+  .btn-outline { background: transparent; border: 1px solid #d4af37; color: #d4af37; }
+  .btn-red { background: #8b1a1a; color: #fff; }
+
+  .divider {
+    text-align: center;
+    color: rgba(212,175,55,0.3);
+    font-size: 1.2rem;
+    margin: 4px 0;
+  }
+
+  .footer-catch {
+    text-align: center;
+    margin-top: 32px;
+    padding: 20px;
+    border: 1px solid rgba(212,175,55,0.2);
+    border-radius: 12px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .footer-catch p {
+    font-family: 'Cinzel', serif;
+    color: #d4af37;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .footer-catch small {
+    color: rgba(255,255,255,0.4);
+    font-size: 0.75rem;
+  }
+
+  .start-btn {
+    display: block;
+    text-align: center;
+    margin: 24px auto 0;
+    max-width: 480px;
+    background: linear-gradient(135deg, #a07c10, #d4af37, #f0d060, #d4af37, #a07c10);
+    background-size: 200% auto;
+    color: #0a0a0a;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <a href="/" class="back-btn">← トップに戻る</a>
+  <h1>POKER CHIP</h1>
+  <div class="subtitle">HOW TO PLAY</div>
+  <div class="catch">トランプさえあれば、今すぐポーカーができる</div>
+</div>
+
+<div class="steps">
+
+  <div class="step-card">
+    <div class="step-num">STEP 01</div>
+    <div class="step-title">ホストが部屋を作る</div>
+    <div class="step-body">
+      <ul>
+        <li>アプリを開いて名前を入力</li>
+        <li>「部屋を作る」をタップ</li>
+        <li>4桁のルームコードが発行される</li>
+      </ul>
+    </div>
+    <span class="tag">全員1000チップスタート</span>
+  </div>
+
+  <div class="divider">↓</div>
+
+  <div class="step-card">
+    <div class="step-num">STEP 02</div>
+    <div class="step-title">ルームコードを仲間に共有</div>
+    <div class="step-body">
+      <ul>
+        <li>LINEやメッセージで4桁の番号を送るだけ</li>
+        <li>2〜6人まで参加OK</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider">↓</div>
+
+  <div class="step-card">
+    <div class="step-num">STEP 03</div>
+    <div class="step-title">仲間が「参加する」で入室</div>
+    <div class="step-body">
+      <ul>
+        <li>名前と4桁コードを入力して参加</li>
+        <li>全員揃ったらホストが「ゲームスタート」をタップ</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider">↓</div>
+
+  <div class="step-card">
+    <div class="step-num">STEP 04</div>
+    <div class="step-title">ベット・コール・フォールド</div>
+    <div class="step-body">
+      <ul>
+        <li>金額を入力して BET（25/50/100/ALL INのクイック選択も可）</li>
+        <li>追いかけるなら CALL</li>
+        <li>誰もベットしていない場合は CHECK</li>
+        <li>降りるなら FOLD</li>
+        <li>誤操作は「元に戻す」で1手取り消せる</li>
+      </ul>
+    </div>
+    <div class="btn-area">
+      <span class="btn-mock btn-green">BET</span>
+      <span class="btn-mock btn-outline">CALL / CHECK</span>
+      <span class="btn-mock btn-red">FOLD</span>
+    </div>
+  </div>
+
+  <div class="divider">↓</div>
+
+  <div class="step-card">
+    <div class="step-num">STEP 05</div>
+    <div class="step-title">勝者にポットを授与</div>
+    <div class="step-body">
+      <ul>
+        <li>勝負が決まったらホストが勝者の名前をタップ</li>
+        <li>ポットのチップが自動で勝者に移動</li>
+        <li>「次のハンド」で次のゲームへ</li>
+      </ul>
+    </div>
+    <span class="tag">ポットがある間は「次のハンド」は押せません</span>
+  </div>
+
+</div>
+
+<div class="footer-catch">
+  <p>♠ トランプ1セット ＋ 各自のスマホ ＝ 今すぐポーカー ♠</p>
+  <small>チップの勝敗判定は自動。手札の強さは人間が判断してください。</small>
+</div>
+
+<a href="/" class="start-btn">さっそくプレイする →</a>
+
+</body>
+</html>
