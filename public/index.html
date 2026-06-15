@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>POKER CHIP</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #d4af37;
+    --gold-light: #f0d060;
+    --gold-dark: #a07c10;
+    --felt: #1a4a2e;
+    --felt-dark: #0d2e1a;
+    --felt-light: #236b3f;
+    --red: #c0392b;
+    --dark: #0a0a0a;
+    --card-bg: #1a1a2e;
+  }
+
+  body {
+    background: var(--felt-dark);
+    color: #fff;
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== LOBBY ===== */
+  #lobby {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.15) 0%, transparent 70%),
+      radial-gradient(ellipse at 50% 100%, rgba(212,175,55,0.05) 0%, transparent 70%),
+      var(--felt-dark);
+  }
+
+  .logo {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .logo h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #a07c10, #f0d060, #d4af37, #f0d060, #a07c10);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s linear infinite;
+    letter-spacing: 0.1em;
+    text-shadow: none;
+  }
+
+  .logo .subtitle {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 0.8rem;
+    letter-spacing: 0.4em;
+    margin-top: 4px;
+    opacity: 0.8;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .chip-icons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  .chip-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    border: 3px solid rgba(255,255,255,0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .chip-icon:nth-child(1) { background: #c0392b; animation-delay: 0s; }
+  .chip-icon:nth-child(2) { background: #2980b9; animation-delay: 0.5s; }
+  .chip-icon:nth-child(3) { background: #27ae60; animation-delay: 1s; }
+  .chip-icon:nth-child(4) { background: #8e44ad; animation-delay: 1.5s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 16px;
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 380px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,175,55,0.2);
+  }
+
+  .card h2 {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    text-align: center;
+    letter-spacing: 0.1em;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    color: rgba(212,175,55,0.4);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(212,175,55,0.2);
+  }
+
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  input[type="text"]:focus, input[type="number"]:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.1);
+  }
+
+  input::placeholder { color: rgba(255,255,255,0.3); }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.05em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.2s;
+  }
+
+  .btn:active::after { background: rgba(255,255,255,0.1); }
+
+  .btn-gold {
+    background: linear-gradient(135deg, #a07c10, #d4af37, #f0d060, #d4af37, #a07c10);
+    background-size: 200% auto;
+    color: #0a0a0a;
+    box-shadow: 0 4px 20px rgba(212,175,55,0.4);
+  }
+
+  .btn-gold:hover { background-position: right center; box-shadow: 0 6px 25px rgba(212,175,55,0.6); }
+
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--gold);
+    color: var(--gold);
+  }
+
+  .btn-outline:hover { background: rgba(212,175,55,0.1); }
+
+  .btn-red {
+    background: linear-gradient(135deg, #8b1a1a, #c0392b, #e74c3c, #c0392b, #8b1a1a);
+    background-size: 200% auto;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(192,57,43,0.4);
+  }
+
+  .btn-green {
+    background: linear-gradient(135deg, #1a5c2e, #27ae60, #2ecc71, #27ae60, #1a5c2e);
+    background-size: 200% auto;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(39,174,96,0.4);
+  }
+
+  .btn-sm {
+    width: auto;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .error-msg {
+    color: #e74c3c;
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 8px;
+    min-height: 20px;
+  }
+
+  /* ===== WAITING ROOM ===== */
+  #waitingRoom {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.1) 0%, transparent 70%), var(--felt-dark);
+  }
+
+  .room-code-display {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .room-code-display .label {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 0.75rem;
+    letter-spacing: 0.4em;
+    margin-bottom: 8px;
+  }
+
+  .room-code-display .code {
+    font-family: 'Cinzel', serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.3em;
+    text-shadow: 0 0 30px rgba(212,175,55,0.5);
+  }
+
+  .player-list {
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .player-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(212,175,55,0.15);
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+
+  .player-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .player-name { font-weight: 700; flex: 1; }
+  .player-chips { color: var(--gold); font-family: 'Cinzel', serif; font-size: 0.9rem; }
+  .host-badge {
+    background: var(--gold);
+    color: #000;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-family: 'Cinzel', serif;
+  }
+
+  /* ===== GAME ===== */
+  #game {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--felt);
+  }
+
+  .game-header {
+    background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .game-header .room-info {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+  }
+
+  .btn-exit {
+    background: rgba(192,57,43,0.2);
+    border: 1px solid rgba(192,57,43,0.5);
+    color: #e74c3c;
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    transition: all 0.2s;
+  }
+  .btn-exit:hover { background: rgba(192,57,43,0.4); }
+
+  .btn-undo {
+    background: rgba(149,165,166,0.15);
+    border: 1px solid rgba(149,165,166,0.4);
+    color: #bdc3c7;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    transition: all 0.2s;
+  }
+  .btn-undo:hover { background: rgba(149,165,166,0.3); }
+  .btn-undo:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* CONFIRM OVERLAY */
+  .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .confirm-overlay.show { opacity: 1; pointer-events: auto; }
+  .confirm-box {
+    background: linear-gradient(135deg, #0d2e1a, #1a4a2e);
+    border: 1px solid rgba(212,175,55,0.4);
+    border-radius: 16px;
+    padding: 28px 24px;
+    width: 85%;
+    max-width: 320px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+  }
+  .confirm-box h3 {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 1rem;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  .confirm-box p {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+  .confirm-btns { display: flex; gap: 10px; }
+  .confirm-btns .btn { margin: 0; }
+
+  /* POT */
+  .pot-area {
+    text-align: center;
+    padding: 16px;
+    position: relative;
+  }
+
+  .pot-label {
+    font-family: 'Cinzel', serif;
+    color: rgba(212,175,55,0.6);
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    margin-bottom: 4px;
+  }
+
+  .pot-amount {
+    font-family: 'Cinzel', serif;
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: var(--gold-light);
+    text-shadow: 0 0 20px rgba(212,175,55,0.6);
+    transition: all 0.3s;
+  }
+
+  .pot-chips {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+
+  .mini-chip {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  /* TABLE FELT */
+  .table-felt {
+    margin: 0 16px;
+    background: radial-gradient(ellipse at 50% 50%, var(--felt-light) 0%, var(--felt) 60%, var(--felt-dark) 100%);
+    border-radius: 50px;
+    border: 3px solid rgba(212,175,55,0.3);
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.4), 0 0 0 6px rgba(212,175,55,0.1);
+    padding: 20px 12px;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .current-bet-display {
+    text-align: center;
+  }
+
+  .current-bet-display .label {
+    font-family: 'Cinzel', serif;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+  }
+
+  .current-bet-display .amount {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    color: #fff;
+  }
+
+  /* PLAYERS GRID */
+  .players-area {
+    padding: 12px 16px;
+    overflow-y: auto;
+  }
+
+  .players-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .player-card {
+    background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 10px 12px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .player-card.is-me {
+    border-color: rgba(212,175,55,0.5);
+    background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(0,0,0,0.5));
+  }
+
+  .player-card.folded {
+    opacity: 0.4;
+  }
+
+  .player-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .player-card.is-me::before { opacity: 1; }
+
+  .pc-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .pc-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .pc-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+
+  .pc-chips {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--gold-light);
+    font-weight: 700;
+  }
+
+  .pc-bet {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .pc-bet span { color: var(--gold); }
+
+  .pc-status {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+  }
+
+  .pc-status.folded { color: #e74c3c; }
+
+  .me-badge {
+    background: var(--gold);
+    color: #000;
+    font-size: 0.6rem;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ACTIONS */
+  .actions-area {
+    padding: 12px 16px 24px;
+    background: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, transparent 100%);
+  }
+
+  .actions-title {
+    font-family: 'Cinzel', serif;
+    color: rgba(212,175,55,0.6);
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .bet-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+
+  .bet-input-row input {
+    flex: 1;
+    margin-bottom: 0;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  .quick-bets {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .quick-bet-btn {
+    flex: 1;
+    min-width: 60px;
+    padding: 8px 4px;
+    background: rgba(212,175,55,0.1);
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 6px;
+    color: var(--gold);
+    font-size: 0.8rem;
+    font-family: 'Cinzel', serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .quick-bet-btn:hover { background: rgba(212,175,55,0.2); }
+  .quick-bet-btn:active { transform: scale(0.95); }
+
+  .action-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* AWARD POT (host only) */
+  .award-area {
+    padding: 0 16px 12px;
+  }
+
+  .award-title {
+    font-family: 'Cinzel', serif;
+    color: rgba(212,175,55,0.6);
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .award-btns {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .award-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 8px;
+    background: rgba(39,174,96,0.15);
+    border: 1px solid rgba(39,174,96,0.4);
+    border-radius: 8px;
+    color: #2ecc71;
+    font-size: 0.85rem;
+    font-family: 'Cinzel', serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .award-btn:hover { background: rgba(39,174,96,0.25); }
+  .award-btn:active { transform: scale(0.97); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: rgba(0,0,0,0.9);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-family: 'Cinzel', serif;
+    color: var(--gold-light);
+    font-size: 1rem;
+    z-index: 1000;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* WIN ANIMATION */
+  .win-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+
+  .win-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .win-text {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 8px;
+  }
+
+  .win-name {
+    font-family: 'Cinzel', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #a07c10, #f0d060, #d4af37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .win-chips {
+    font-family: 'Cinzel', serif;
+    font-size: 1.5rem;
+    color: var(--gold-light);
+    margin-bottom: 32px;
+  }
+
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 501;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -10px;
+    animation: confettiFall linear forwards;
+  }
+
+  @keyframes confettiFall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 2px; }
+
+  .hidden { display: none !important; }
+  .flex { display: flex !important; }
+  .flex-col { display: flex !important; flex-direction: column !important; }
+
+  /* NEW HAND BTN */
+  .new-hand-area {
+    padding: 0 16px 8px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOBBY -->
+<div id="lobby" style="display:flex">
+  <div style="text-align:center; width:100%; max-width:380px;">
+    <div class="logo">
+      <div class="chip-icons">
+        <div class="chip-icon">♠</div>
+        <div class="chip-icon">♥</div>
+        <div class="chip-icon">♣</div>
+        <div class="chip-icon">♦</div>
+      </div>
+      <img src="/top.png" alt="POKER CHIP" style="max-width:280px;width:100%;height:auto;">
+    </div>
+
+    <div class="card">
+      <h2>CREATE ROOM</h2>
+      <input type="text" id="createName" placeholder="あなたの名前" maxlength="10">
+      <button class="btn btn-gold" onclick="createRoom()">部屋を作る</button>
+
+      <div class="divider">OR</div>
+
+      <h2>JOIN ROOM</h2>
+      <input type="text" id="joinName" placeholder="あなたの名前" maxlength="10">
+      <input type="text" id="roomCode" placeholder="部屋番号 (4桁)" maxlength="4" inputmode="numeric">
+      <button class="btn btn-outline" onclick="joinRoom()">参加する</button>
+
+      <div class="error-msg" id="lobbyError"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WAITING ROOM -->
+<div id="waitingRoom" style="display:none; flex-direction:column; align-items:center; min-height:100vh; padding:20px; background: radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.1) 0%, transparent 70%), var(--felt-dark);">
+  <div style="width:100%;max-width:380px;">
+    <div style="text-align:center; margin-bottom:24px; margin-top:20px;">
+      <div class="logo" style="margin-bottom:0">
+        <h1 style="font-size:2rem;">POKER CHIP</h1>
+      </div>
+    </div>
+
+    <div class="room-code-display" style="background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.3);border-radius:16px;padding:20px;margin-bottom:20px;">
+      <div class="label">ROOM CODE</div>
+      <div class="code" id="displayCode">----</div>
+      <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-top:8px;">この番号を仲間に共有してください</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <h2>PLAYERS (<span id="playerCount">0</span>/6)</h2>
+      <div id="waitingPlayerList"></div>
+    </div>
+
+    <div id="startBtnArea">
+      <button class="btn btn-gold" onclick="startGame()">ゲームスタート</button>
+      <div style="color:rgba(255,255,255,0.4);font-size:0.75rem;text-align:center;margin-top:8px;">※ ホストのみ操作可能</div>
+    </div>
+
+    <div class="error-msg" id="waitingError"></div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game" style="display:none; flex-direction:column; min-height:100vh;">
+
+  <div class="game-header">
+    <div class="room-info">ROOM <span id="gameRoomCode">----</span></div>
+    <div class="logo" style="margin:0;"><h1 style="font-size:1rem;">POKER CHIP</h1></div>
+    <button class="btn-exit" onclick="confirmExit()">退出</button>
+  </div>
+
+  <!-- POT -->
+  <div class="pot-area">
+    <div class="pot-label">TOTAL POT</div>
+    <div class="pot-amount" id="potAmount">0</div>
+    <div class="pot-chips" id="potChips"></div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-felt">
+    <div class="current-bet-display">
+      <div class="label">CURRENT BET</div>
+      <div class="amount" id="currentBet">0</div>
+    </div>
+  </div>
+
+  <!-- PLAYERS -->
+  <div class="players-area" style="flex:1;">
+    <div class="players-grid" id="playersGrid"></div>
+  </div>
+
+  <!-- AWARD POT (host) -->
+  <div class="award-area" id="awardArea" style="display:none;">
+    <div class="award-title">★ AWARD POT TO ★</div>
+    <div class="award-btns" id="awardBtns"></div>
+  </div>
+
+  <!-- NEW HAND -->
+  <div class="new-hand-area" id="newHandArea" style="display:none;">
+    <button class="btn btn-outline btn-sm" id="newHandBtn" style="width:auto;padding:8px 20px;" onclick="newHand()">次のハンド</button>
+    <div id="newHandHint" style="color:rgba(192,57,43,0.8);font-size:0.72rem;text-align:center;margin-top:4px;display:none;">先にポットを授与してください</div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions-area">
+    <div class="actions-title">YOUR ACTION</div>
+    <div class="bet-input-row">
+      <button class="quick-bet-btn" style="flex:0;padding:8px 10px;" onclick="adjustBet(-50)">−</button>
+      <input type="number" id="betAmount" value="50" min="1" inputmode="numeric">
+      <button class="quick-bet-btn" style="flex:0;padding:8px 10px;" onclick="adjustBet(50)">＋</button>
+    </div>
+    <div class="quick-bets">
+      <button class="quick-bet-btn" onclick="setBet(25)">25</button>
+      <button class="quick-bet-btn" onclick="setBet(50)">50</button>
+      <button class="quick-bet-btn" onclick="setBet(100)">100</button>
+      <button class="quick-bet-btn" onclick="setBetAllIn()">ALL IN</button>
+    </div>
+    <div class="action-btns">
+      <button class="btn btn-green" onclick="doBet()">BET</button>
+      <button class="btn btn-outline" id="callCheckBtn" onclick="doCallOrCheck()">CALL</button>
+      <button class="btn btn-red" onclick="doFold()">FOLD</button>
+    </div>
+    <div style="margin-top:8px;text-align:right;">
+      <button class="btn btn-undo" id="undoBtn" style="padding:6px 14px;font-size:0.75rem;" onclick="doUndo()" disabled>↩ 元に戻す</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM EXIT -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>退出しますか？</h3>
+    <p>ゲームを離れると<br>チップは失われます</p>
+    <div class="confirm-btns">
+      <button class="btn btn-outline" style="flex:1;" onclick="closeConfirm()">キャンセル</button>
+      <button class="btn btn-red" style="flex:1;" onclick="doExit()">退出する</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- WIN OVERLAY -->
+<div class="win-overlay" id="winOverlay">
+  <div class="confetti-container" id="confettiContainer"></div>
+  <div class="win-text">🏆 WINNER 🏆</div>
+  <div class="win-name" id="winnerName"></div>
+  <div class="win-chips" id="winnerChips"></div>
+  <button class="btn btn-gold" style="width:200px;" onclick="closeWin()">続ける</button>
+</div>
+
+<script>
+const socket = io();
+let myId = null;
+let myRoom = null;
+let isHost = false;
+let myChips = 1000;
+
+const avatarColors = ['#c0392b','#2980b9','#27ae60','#8e44ad','#d35400','#16a085'];
+
+socket.on('connect', () => { myId = socket.id; });
+
+// ===== LOBBY =====
+function createRoom() {
+  const name = document.getElementById('createName').value.trim();
+  if (!name) return showLobbyError('名前を入力してください');
+  socket.emit('createRoom', { playerName: name });
+}
+
+function joinRoom() {
+  const name = document.getElementById('joinName').value.trim();
+  const code = document.getElementById('roomCode').value.trim();
+  if (!name) return showLobbyError('名前を入力してください');
+  if (!code || code.length !== 4) return showLobbyError('4桁の部屋番号を入力してください');
+  socket.emit('joinRoom', { roomCode: code, playerName: name });
+}
+
+function showLobbyError(msg) {
+  document.getElementById('lobbyError').textContent = msg;
+  setTimeout(() => document.getElementById('lobbyError').textContent = '', 3000);
+}
+
+socket.on('roomCreated', ({ code, room }) => {
+  myRoom = room;
+  isHost = true;
+  showWaitingRoom(room);
+});
+
+socket.on('joinedRoom', ({ room }) => {
+  myRoom = room;
+  isHost = false;
+  showWaitingRoom(room);
+});
+
+socket.on('error', ({ message }) => {
+  showLobbyError(message);
+  showError('waitingError', message);
+});
+
+// ===== WAITING ROOM =====
+function showWaitingRoom(room) {
+  document.getElementById('lobby').style.display = 'none';
+  document.getElementById('waitingRoom').style.display = 'flex';
+  document.getElementById('displayCode').textContent = room.code;
+  updateWaitingRoom(room);
+}
+
+function updateWaitingRoom(room) {
+  myRoom = room;
+  document.getElementById('playerCount').textContent = room.players.length;
+
+  const list = document.getElementById('waitingPlayerList');
+  list.innerHTML = room.players.map((p, i) => `
+    <div class="player-item">
+      <div class="player-avatar" style="background:${avatarColors[i % avatarColors.length]}">${p.name[0].toUpperCase()}</div>
+      <div class="player-name">${p.name} ${p.id === myId ? '(あなた)' : ''}</div>
+      ${p.id === room.hostId ? '<span class="host-badge">HOST</span>' : ''}
+      <div class="player-chips">♦ ${p.chips}</div>
+    </div>
+  `).join('');
+
+  const startArea = document.getElementById('startBtnArea');
+  startArea.style.display = isHost ? 'block' : 'none';
+}
+
+socket.on('roomUpdated', (room) => {
+  myRoom = room;
+  const me = room.players.find(p => p.id === myId);
+  if (me) myChips = me.chips;
+
+  if (document.getElementById('waitingRoom').style.display !== 'none') {
+    updateWaitingRoom(room);
+  } else if (document.getElementById('game').style.display !== 'none') {
+    updateGame(room);
+  }
+});
+
+function startGame() {
+  if (myRoom && myRoom.players.length < 2) {
+    showError('waitingError', '2人以上必要です');
+    return;
+  }
+  socket.emit('startGame');
+}
+
+socket.on('gameStarted', (room) => {
+  myRoom = room;
+  const me = room.players.find(p => p.id === myId);
+  if (me) myChips = me.chips;
+  showGame(room);
+});
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  setTimeout(() => el.textContent = '', 3000);
+}
+
+// ===== GAME =====
+function showGame(room) {
+  document.getElementById('waitingRoom').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  updateGame(room);
+}
+
+function updateGame(room) {
+  myRoom = room;
+  const me = room.players.find(p => p.id === myId);
+  if (me) {
+    myChips = me.chips;
+    isHost = room.hostId === myId;
+  }
+
+  document.getElementById('gameRoomCode').textContent = room.code;
+  document.getElementById('potAmount').textContent = room.pot.toLocaleString();
+  document.getElementById('currentBet').textContent = room.currentBet.toLocaleString();
+
+  // pot chips visual
+  renderPotChips(room.pot);
+
+  // players grid
+  const grid = document.getElementById('playersGrid');
+  grid.innerHTML = room.players.map((p, i) => {
+    const isMe = p.id === myId;
+    const foldedClass = p.folded ? 'folded' : '';
+    const meClass = isMe ? 'is-me' : '';
+    return `
+      <div class="player-card ${meClass} ${foldedClass}">
+        <div class="pc-header">
+          <div class="pc-avatar" style="background:${avatarColors[i % avatarColors.length]}">${p.name[0].toUpperCase()}</div>
+          <div class="pc-name">${p.name}</div>
+          ${isMe ? '<span class="me-badge">YOU</span>' : ''}
+        </div>
+        <div class="pc-chips">♦ ${p.chips.toLocaleString()}</div>
+        ${p.bet > 0 ? `<div class="pc-bet">ベット: <span>${p.bet.toLocaleString()}</span></div>` : ''}
+        ${p.folded ? '<div class="pc-status folded">FOLD</div>' : ''}
+      </div>
+    `;
+  }).join('');
+
+  // award pot (host only)
+  const awardArea = document.getElementById('awardArea');
+  const newHandArea = document.getElementById('newHandArea');
+  if (isHost) {
+    awardArea.style.display = room.pot > 0 ? 'block' : 'none';
+    newHandArea.style.display = 'block';
+    const newHandBtn = document.getElementById('newHandBtn');
+    const newHandHint = document.getElementById('newHandHint');
+    if (room.pot > 0) {
+      newHandBtn.disabled = true;
+      newHandBtn.style.opacity = '0.35';
+      newHandHint.style.display = 'block';
+    } else {
+      newHandBtn.disabled = false;
+      newHandBtn.style.opacity = '1';
+      newHandHint.style.display = 'none';
+    }
+    const activePlayers = room.players.filter(p => !p.folded);
+    document.getElementById('awardBtns').innerHTML = activePlayers.map(p => `
+      <button class="award-btn" onclick="awardPot('${p.id}')">🏆 ${p.name}</button>
+    `).join('');
+  } else {
+    awardArea.style.display = 'none';
+    newHandArea.style.display = 'none';
+  }
+
+  // CHECK vs CALL
+  const callCheckBtn = document.getElementById('callCheckBtn');
+  if (room.currentBet === 0 || (me && me.bet >= room.currentBet)) {
+    callCheckBtn.textContent = 'CHECK';
+    callCheckBtn.className = 'btn btn-outline';
+  } else {
+    callCheckBtn.textContent = 'CALL';
+    callCheckBtn.className = 'btn btn-outline';
+  }
+
+  // UNDO button
+  document.getElementById('undoBtn').disabled = !room.snapshot;
+
+  // update bet input max
+  if (me) {
+    document.getElementById('betAmount').max = me.chips;
+  }
+}
+
+function renderPotChips(pot) {
+  const colors = [
+    { val: 500, color: '#8e44ad' },
+    { val: 100, color: '#2980b9' },
+    { val: 25, color: '#27ae60' },
+    { val: 5, color: '#c0392b' },
+    { val: 1, color: '#7f8c8d' },
+  ];
+  const container = document.getElementById('potChips');
+  if (pot === 0) { container.innerHTML = ''; return; }
+
+  let remaining = pot;
+  const chips = [];
+  for (const { val, color } of colors) {
+    while (remaining >= val && chips.length < 12) {
+      chips.push({ val, color });
+      remaining -= val;
+    }
+  }
+  container.innerHTML = chips.map(c => `
+    <div class="mini-chip" style="background:${c.color}">${c.val}</div>
+  `).join('');
+}
+
+// ===== ACTIONS =====
+function setBet(amount) {
+  document.getElementById('betAmount').value = amount;
+}
+
+function setBetAllIn() {
+  document.getElementById('betAmount').value = myChips;
+}
+
+function adjustBet(delta) {
+  const input = document.getElementById('betAmount');
+  const val = parseInt(input.value) || 0;
+  input.value = Math.max(1, Math.min(myChips, val + delta));
+}
+
+function doBet() {
+  const amount = parseInt(document.getElementById('betAmount').value) || 0;
+  if (amount <= 0) return;
+  socket.emit('bet', { amount });
+}
+
+function doCallOrCheck() {
+  if (myRoom && myRoom.currentBet === 0) {
+    socket.emit('check');
+  } else {
+    socket.emit('call');
+  }
+}
+
+function doFold() {
+  socket.emit('fold');
+}
+
+function doUndo() {
+  socket.emit('undo');
+}
+
+function confirmExit() {
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+}
+
+function doExit() {
+  socket.disconnect();
+  location.reload();
+}
+
+function awardPot(winnerId) {
+  socket.emit('awardPot', { winnerId });
+}
+
+function newHand() {
+  socket.emit('newHand');
+}
+
+// ===== WIN =====
+socket.on('potAwarded', ({ winnerName, room }) => {
+  myRoom = room;
+  updateGame(room);
+  showWin(winnerName, room.players.find(p => p.name === winnerName));
+  launchConfetti();
+});
+
+function showWin(name, player) {
+  document.getElementById('winnerName').textContent = name;
+  document.getElementById('winnerChips').textContent = player ? `♦ ${player.chips.toLocaleString()} chips` : '';
+  document.getElementById('winOverlay').classList.add('show');
+}
+
+function closeWin() {
+  document.getElementById('winOverlay').classList.remove('show');
+  document.getElementById('confettiContainer').innerHTML = '';
+}
+
+function launchConfetti() {
+  const container = document.getElementById('confettiContainer');
+  container.innerHTML = '';
+  const colors = ['#d4af37','#f0d060','#c0392b','#2980b9','#27ae60','#fff'];
+  for (let i = 0; i < 60; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.width = (Math.random() * 8 + 6) + 'px';
+    el.style.height = (Math.random() * 8 + 6) + 'px';
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+    el.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    el.style.animationDelay = (Math.random() * 1.5) + 's';
+    container.appendChild(el);
+  }
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+socket.on('undone', () => showToast('↩ 直前の操作を取り消しました'));
+socket.on('disconnect', () => showToast('サーバーとの接続が切れました'));
+</script>
+</body>
+</html>
